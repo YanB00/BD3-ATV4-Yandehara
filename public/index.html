@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATIVIDADE - REDE SOCIAL</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <div class="header_container">
+        <img src="./images/image.jpg" />
+        <h1>ATIVIDADE - REDE SOCIAL</h1>
+    </div>
+
+    <div class="button_post_container">
+        <button name="btn_post" id="btn_post">POST</button>
+    </div>
+
+    <div class="posts_container"></div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="form_post_container">
+                <h4>FAÇA UM POST</h4>
+                <form name="frm_post" id="frm_post">
+                    <input type="text" name="txt_titulo" id="txt_titulo" placeholder="TITULO DO POST" required>
+                    <br />
+                    <input type="text" name="txt_post" id="txt_post" placeholder="TEXTO DO POST" required>
+                    <br />
+                    <button name="btn_postar" id="btn_postar">POSTAR</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /***** ABERTURA/FECHAMENTO DO FORMUÁRIO MODAL *****/
+        let btn = document.getElementById('btn_post');
+        let modal = document.getElementById("myModal");
+        let span = document.getElementsByClassName("close")[0];
+
+        btn.addEventListener('click', function (event) {
+            event.preventDefault();
+            modal.style.display = "block";
+        });
+
+        span.addEventListener('click', function(event){
+            modal.style.display = "none";
+        });
+
+
+        const socket = io();
+
+        socket.on('previousMessage', function (posts) {
+            posts.forEach(post => renderPost(post));
+        });
+
+        socket.on('receivedMessage', function (post) {
+            renderPost(post);
+        });
+
+        document.getElementById('frm_post').addEventListener('submit', function (e) {
+            e.preventDefault(); 
+
+            const titulo = document.getElementById('txt_titulo').value.trim();
+            const texto = document.getElementById('txt_post').value.trim();
+
+            if (titulo && texto) {
+                socket.emit('sendMessage', { titulo, texto });
+
+                document.getElementById('frm_post').reset();
+                modal.style.display = "none";
+            }
+        });
+
+        function renderPost(post) {
+            const container = document.querySelector('.posts_container');
+            const postEl = document.createElement('div');
+            postEl.classList.add('post'); 
+            postEl.innerHTML = `<h3>${post.titulo}</h3><p>${post.texto}</p><hr>`;
+            container.appendChild(postEl);
+        }
+
+
+    </script>
+
+</html>
